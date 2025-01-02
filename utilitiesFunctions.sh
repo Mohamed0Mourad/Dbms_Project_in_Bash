@@ -4,8 +4,9 @@
 
 #Show Options to the user
 ShowOptionsToUsers(){
+    
     echo "=============================="
-    echo "     OUR DBMS Project IN Bash      "
+    figlet "DBMS Project"
     echo "=============================="
     echo "1. Create Database"
     echo "2. List Databases"
@@ -71,10 +72,12 @@ DatabaseConnect(){
     fi
 }
 DatabaseDrop(){
-    read -p "Which Database name you want to Drop" DbName
-    if [ -d /Our_Dbms_project/databases/$DbName ]
+    echo "These are available databases"
+    ls ~/Our_Dbms_project/databases
+    read -p "Which Database name you want to Drop: " DbName
+    if [ -d ~/Our_Dbms_project/databases/$DbName ]
     then
-        rm -rf /Our_Dbms_project/databases/$DbName
+        rm -rf ~/Our_Dbms_project/databases/$DbName
         echo "Database '$DbName' Deleted successfully"
     else
         "There is No Database called '$DbName' !: "
@@ -82,5 +85,4 @@ DatabaseDrop(){
 
     fi
 }
-
 

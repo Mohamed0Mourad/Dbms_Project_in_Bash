@@ -12,7 +12,7 @@ ShowTableOperations(){
     echo "8. Back to Main Menu"
     echo "=============================="
 
-    read -p "What Did you want: " SelectedChoice
+    read -p "What Do you want: " SelectedChoice
 
 }
 

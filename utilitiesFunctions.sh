@@ -1,12 +1,12 @@
 #!/bin/bash
 
-
+. ./tablesOperations.sh
 
 #Show Options to the user
 ShowOptionsToUsers(){
     
     echo "=============================="
-    figlet "DBMS Project"
+    echo "DBMS Project"
     echo "=============================="
     echo "1. Create Database"
     echo "2. List Databases"
@@ -45,7 +45,7 @@ DatabaseConnect(){
 
     if [ -d ~/Our_Dbms_project/databases/$DbName ] 
     then
-        cd ~/Our_Dbms_project/databases/$DbName
+        cd ~/Our_Dbms_project/databases/$DbName || exit
         echo "Connected Successfully to '$DbName'"
         
         while true 

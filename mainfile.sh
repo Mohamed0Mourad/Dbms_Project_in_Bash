@@ -1,5 +1,7 @@
 #!/bin/bash
-./ShowOptionsToUsers
+
+. ./utilitiesFunctions.sh
+
 while true
 do
     ShowOptionsToUsers

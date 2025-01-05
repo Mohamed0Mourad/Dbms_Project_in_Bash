@@ -255,8 +255,99 @@ checkType()
             ;;
     esac
 }
-#SelectFromTable(){}
 
-#DeleteFromTable(){}
+SelectFromTable(){
+    ListTables
+    selectAll="N"
+    read -p "Enter Table Name: " TableName
+    if [ -z "$TableName" ]
+    then
+        echo "Table Name can not be empty"
+    elif [ ! -f "$TableName" ]
+    then
+        echo "$RED Table $TableName does not exits $NC"
+    else
+        mateData="mateData_$TableName"
+        if [ ! -f "$mateData" ]
+        then
+            echo "$RED Meta Data for Table $TableName does not exits $NC"
+        else
+            read -p "Do you want to see the table with meta data (Y/N): " showMetaData
+            read -p " Do yoy want to select all columns (Y/N): " selectAll
+            if [  "$selectAll" != "Y" ] && [  "$selectAll" != "y" ]
+            then
+                read -p "Enter Column Name:  " ColumnName_
+                grep -qw "$ColumnName_" "$mateData"
 
-#UpdateRow(){}
+                if [ $? -eq 1 ]
+                then 
+                    echo -e "$RED $BOLD $ColumnName_ is not found in table $NC"
+                    return 1
+                fi
+                read -p "Enter Column Value: " ColumnValue_
+            fi
+            
+            while read   line
+            do
+                IFS=':' read -r -a array <<< "$line"
+                ColumnName=${array[0]}
+                ColumnType=${array[1]}
+                IsPrimaryKey=${array[2]}
+                echo -e -n "$BLUE $BOLD"
+                if [ "$showMetaData" == "Y" ] || [ "$showMetaData" == "y" ]
+                then
+                    if [  "$IsPrimaryKey" == "Y" ]
+                    then
+                        printf "%-10s (%s) (PK) | " "$ColumnName" "$ColumnType"
+                    else
+                        printf "%-10s (%s) | " "$ColumnName" "$ColumnType"
+                    fi
+                else
+                    printf "%-17s | " "$ColumnName"
+                fi
+            done < "$mateData"
+            line="---------------------------------------------"
+            printf "\n %-17s\n" "$line"
+            echo -e -n "$NC"
+            typeset -i flag_to_print=0
+            while read   line
+            do
+                IFS=':' read -r -a array <<< "$line"
+                for i in "${array[@]}"
+                do
+                    if [ "$selectAll" == "Y" ] || [ "$selectAll" == "y" ]
+                    then
+                        flag_to_print=1      
+                        if [ "$showMetaData" == "Y" ] || [ "$showMetaData" == "y" ]
+                        then
+                            printf "%-22s | " "$i"
+                        else
+                            printf "%-17s | " "$i"
+                        fi
+                    else
+                        if [ "$i" == "$ColumnValue_" ]
+                        then
+                        for j in "${array[@]}"
+                        do
+                            flag_to_print=1
+                            if [ "$showMetaData" == "Y" ] || [ "$showMetaData" == "y" ]
+                            then
+                                printf "%-22s | " "$j"
+                            else
+                                printf "%-17s | " "$j"
+                            fi
+                        done
+                        fi
+                    fi
+            
+                done
+                if [ $flag_to_print -eq 1 ]
+                then
+                    echo ""
+                    flag_to_print=0
+                fi
+            done < "$TableName"
+        fi
+    fi
+
+}

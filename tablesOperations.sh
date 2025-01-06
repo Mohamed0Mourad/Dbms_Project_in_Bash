@@ -8,6 +8,7 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 ShowTableOperations(){
+    echo -e "$BOLD"
     echo "=========================="
     echo "1. Create Table"
     echo "2. List Tables"
@@ -20,6 +21,7 @@ ShowTableOperations(){
     echo "=============================="
     
     read -p "What Do you want: " SelectedChoice
+    echo -e "$NC"
     
 }
 
@@ -58,6 +60,10 @@ CreateTableMetaData(){
             else
                 IsPrimaryKey="N"
                 read -p "Enter default value: " DefaultValue
+                if [ -z $DefaultValue ]
+                then
+                    DefaultValue="NULL"
+                fi
             fi
             echo "$ColumnName:$ColumnType:$IsPrimaryKey:$IsNullable:$DefaultValue" >> "$mateData"
             
@@ -81,6 +87,13 @@ CreateTable(){
 }
 
 ListTables(){
+    currentDir=$(pwd)
+    checkIfDirectoryEmpty  "$currentDir"
+    if [ $? -eq 1 ]
+    then
+        echo -e "$RED No Tables Found $NC"
+        return 1
+    fi
     echo -e "$YELLOW $BOLD The Available Tables are: "
     echo -e "==========================="
     find . -type f ! -name "mateData*" | awk -F/ '{for (i=2; i<=NF; i++) printf "| %-25s |\n", $i}'
@@ -88,11 +101,15 @@ ListTables(){
 }
 
 DropTable(){
-    
+    ListTables
+    if [ $? -eq 1 ]
+    then
+        return 1
+    fi
     read -p "Enter Table Name: " TableName
     if [ -z $TableName ]
     then
-        echo "Table Name can not be empty"
+        echo -e "$RED Table Name can not be empty $NC"
     elif [ ! -f $TableName ]
     then
         echo "$RED Table $TableName does not exixsts $NC"
@@ -106,15 +123,15 @@ InsertIntoTable(){
     read -p "Enter Table Name: " TableName
     if [ -z $TableName ]
     then
-        echo "Table Name can not be empty"
+        echo -e " $BOLD $RED Table Name can not be empty $NC"
     elif [ ! -f $TableName ]
     then
-        echo "$RED Table $TableName does not exixsts $NC"
+        echo "$RED $BOLD Table $TableName does not exixsts $NC"
     else
         mateData="mateData_$TableName"
         if [ ! -f $mateData ]
         then
-            echo "$RED Meta Data for Table $TableName does not exixsts $NC"
+            echo "$RED $BOLD Meta Data for Table $TableName does not exixsts $NC"
         else
             raw=""
             typeset -i flag=0
@@ -164,18 +181,16 @@ InsertIntoTable(){
                             if [ -z $ColumnValue ]
                             then
                             ColumnValue=$DefaultValue
-                            else
-                                checkType $ColumnType $ColumnValue
-                                if [ $? -eq 1 ]
-                                then
-                                    echo -e "$RED $BOLD $ColumnValue is not of type $ColumnType $NC"
-                                    flag=1
-                                    break
-                                fi
-                            
                             fi
                         fi
                     fi
+                fi
+                checkType $ColumnType $ColumnValue
+                if [ $? -eq 1 ]
+                then
+                    echo -e "$RED $BOLD $ColumnValue is not of type $ColumnType $NC"
+                    flag=1
+                    break
                 fi
                 raw="$raw$ColumnValue:"
             done 3< "$mateData"

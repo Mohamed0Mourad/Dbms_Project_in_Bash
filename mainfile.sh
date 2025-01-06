@@ -2,6 +2,8 @@
 
 . ./utilitiesFunctions.sh
 
+cd ~/Our_Dbms_project
+
 while true
 do
     ShowOptionsToUsers

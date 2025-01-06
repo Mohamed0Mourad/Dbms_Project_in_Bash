@@ -4,7 +4,7 @@
 
 #Show Options to the user
 ShowOptionsToUsers(){
-    
+    echo -e "$BOLD"
     echo "=============================="
     echo "DBMS Project"
     echo "=============================="
@@ -13,9 +13,9 @@ ShowOptionsToUsers(){
     echo "3. Connect To Database"
     echo "4. Drop Database"
     echo "5. Quit"
-
     echo "==============================="
     read -p "Enter your option: " option
+    echo -e "$NC"
 }
 CreateDatabase(){
     read -p "Which database Name you want to Create: " DbName
@@ -34,13 +34,29 @@ CreateDatabase(){
 }
 
 ListDatabase(){
-    echo "The Available Databases are: "
-    ls ~/Our_Dbms_project/databases
+    currentDir=$(pwd)
+    currentDir="$currentDir/databases"
+    checkIfDirectoryEmpty  "$currentDir"
+    if [ $? -eq 1 ]
+    then
+        echo -e "$RED $BOLD There is no database created yet $NC"
+        return 1
+    else
+        echo -e "$BOLD $GREEN The Available Databases are: $NC "
+        echo "=============================="
+        echo -e "$BLUE"
+        ls -A $currentDir | awk -F/ '{for (i=1; i<=NF; i++) printf "| %-25s |\n", $i}'
+        echo -e "$NC"
+    fi
 }
 
 DatabaseConnect(){
   
-    ls ~/Our_Dbms_project/databases
+    ListDatabase
+    if [ $? -eq 1 ]
+    then
+        return 1
+    fi
     read -p "These Are Available Databases Which one you need to Connect: " DbName
 
     if [ -d ~/Our_Dbms_project/databases/$DbName ] 
@@ -72,8 +88,11 @@ DatabaseConnect(){
     fi
 }
 DatabaseDrop(){
-    echo "These are available databases"
-    ls ~/Our_Dbms_project/databases
+    ListDatabase
+    if [ $? -eq 1 ]
+    then
+        return 1
+    fi
     read -p "Which Database name you want to Drop: " DbName
     if [ -d ~/Our_Dbms_project/databases/$DbName ]
     then
@@ -83,6 +102,15 @@ DatabaseDrop(){
         "There is No Database called '$DbName' !: "
 
 
+    fi
+}
+
+checkIfDirectoryEmpty(){
+    if [ "$(ls -A "$1"  2>/dev/null)" ]
+    then
+        return 0
+    else
+        return 1
     fi
 }
 

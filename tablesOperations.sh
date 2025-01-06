@@ -351,3 +351,122 @@ SelectFromTable(){
     fi
 
 }
+
+
+
+DeleteFromTable(){
+    ListTables
+    read -p "Enter Table Name: " TableName
+    if [ -z $TableName ]
+    then
+        echo "Table Name can not be empty"
+    elif [ ! -f $TableName ]
+    then
+        echo "$RED Table $TableName does not exixsts $NC"
+    else
+        mateData="mateData_$TableName"
+        if [ ! -f $mateData ]
+        then
+            echo "$RED Meta Data for Table $TableName does not exixsts $NC"
+        else
+            read -p "Enter Column Name: " ColumnName
+            grep -qw "$ColumnName" "$mateData"
+            if [ $? -eq 1 ]
+            then 
+                echo -e "$RED $BOLD $ColumnName is not found in table $NC"
+                return 1
+            fi
+            IsPrimaryKey=$( awk -F: -v colName="$ColumnName" '$1 == colName {print $3}' "$mateData" )
+            if [ "$IsPrimaryKey" == "Y" ]
+            then
+                read -p "Enter Column Value: " ColumnValue
+                if [ -z $ColumnValue ]
+                then
+                    echo -e "$RED $BOLD Column Value can not be empty $NC"
+                    return 1
+                else
+                    sed -i "/$ColumnValue/d" $TableName
+                    if [ $? -eq 1 ]
+                    then
+                        echo -e "$RED $BOLD Row not found $NC"
+                    else
+                        echo -e "$GREEN $BOLD Row Deleted successfully $NC"
+                    fi
+                fi
+            else
+                echo " Please Select primary Key"
+                echo -e "$RED $BOLD You can not delete from table without primary key $NC"
+                return 1
+            fi
+        fi
+    fi
+
+}
+
+
+
+
+UpdateRow(){
+    ListTables
+    read -p "Enter Table Name: " TableName
+    if [ -z "$TableName" ]; then
+        echo "Table Name cannot be empty"
+        return 1
+    elif [ ! -f "$TableName" ]; then
+        echo -e "$RED Table $TableName does not exist $NC"
+        return 1
+    fi
+
+    mateData="mateData_$TableName"
+    if [ ! -f "$mateData" ]; then
+        echo -e "$RED Metadata for Table $TableName does not exist $NC"
+        return 1
+    fi
+
+    PrimaryKeyColumn=$(awk -F: '$3 == "Y" {print $1}' "$mateData")
+    if [ -z "$PrimaryKeyColumn" ]; then
+        echo -e "$RED $BOLD No primary key defined in the table $NC"
+        return 1
+    fi
+
+
+    read -p "Enter the Primary Key value of the row to update: " PrimaryKeyValue
+    if [ -z "$PrimaryKeyValue" ]; then
+        echo "Primary Key value cannot be empty"
+        return 1
+    fi
+
+    Row=$(grep "^$PrimaryKeyValue" "$TableName")
+    if [ -z "$Row" ]; then
+        echo -e "$RED $BOLD No row found with Primary Key $PrimaryKeyValue $NC"
+        return 1
+    fi
+    Row=""
+    while IFS=":" read -r -u 3 ColumnName ColumnType isPrimary _; do
+        read -p "Enter new value for $ColumnName (leave empty to keep current): " ColumnValue
+        
+        if [ -n "$ColumnValue" ]; then
+            if ! checkType "$ColumnType" "$ColumnValue"; then
+                echo -e "$RED $BOLD Invalid value $ColumnValue for $ColumnType $NC"
+                return 1
+            fi
+            if [ "$isPrimary" == "Y" ]
+            then
+                if ! checkIfColumnRepeated "$ColumnValue" "$TableName"; then
+                echo -e "$RED $BOLD $ColumnName can not be repeated $NC"
+                return 1
+                fi
+            fi
+
+
+            
+        Row="$Row$ColumnValue:"
+        fi
+    done 3< "$mateData"
+    Row=${Row::-1}
+    echo "$Row"
+    sed -i "s/^$PrimaryKeyValue.*/$Row/" "$TableName"
+
+    echo -e "$GREEN $BOLD Row updated successfully $NC"
+}
+

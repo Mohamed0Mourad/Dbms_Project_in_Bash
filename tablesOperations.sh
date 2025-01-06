@@ -120,6 +120,9 @@ DropTable(){
 }
 InsertIntoTable(){
     ListTables
+    if [ $? -eq 1 ]; then
+        return 1
+    fi
     read -p "Enter Table Name: " TableName
     if [ -z $TableName ]
     then
@@ -273,6 +276,9 @@ checkType()
 
 SelectFromTable(){
     ListTables
+    if [ $? -eq 1 ]; then
+        return 1
+    fi
     selectAll="N"
     read -p "Enter Table Name: " TableName
     if [ -z "$TableName" ]
@@ -371,6 +377,9 @@ SelectFromTable(){
 
 DeleteFromTable(){
     ListTables
+    if [ $? -eq 1 ]; then
+        return 1
+    fi
     read -p "Enter Table Name: " TableName
     if [ -z $TableName ]
     then
@@ -423,6 +432,9 @@ DeleteFromTable(){
 
 UpdateRow(){
     ListTables
+    if [ $? -eq 1 ]; then
+        return 1
+    fi
     read -p "Enter Table Name: " TableName
     if [ -z "$TableName" ]; then
         echo "Table Name cannot be empty"
